@@ -1,16 +1,20 @@
 {
   "name": "startupcode",
   "version": "1.0.0",
-  "description": "Startup coding project",
+  "description": "Startup coding project with Express.js",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "node index.js"
+    "dev": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["nodejs", "server"],
+  "keywords": ["nodejs", "express", "server", "api"],
   "author": "Alex",
   "license": "MIT",
   "engines": {
     "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
   }
 }
