@@ -1,7 +1,7 @@
 {
-  "name": "startupcode",
+  "name": "memo-app",
   "version": "1.0.0",
-  "description": "Startup coding project with Express.js and Supabase",
+  "description": "Memo App project with Express.js and Supabase",
   "main": "index.js",
   "type": "commonjs",
   "scripts": {
