@@ -26,6 +26,11 @@ app.get('/api/status', (req, res) => {
   });
 });
 
+// HTML 페이지를 직접 제공하는 라우트
+app.get('/html', (req, res) => {
+  res.sendFile(__dirname + '/public/index.html');
+});
+
 // 404 에러 핸들링
 app.use('*', (req, res) => {
   res.status(404).json({
@@ -38,4 +43,5 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Express server listening on http://localhost:${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`HTML page available at: http://localhost:${PORT}/html`);
 });
