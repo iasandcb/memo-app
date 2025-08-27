@@ -3,89 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Startup Code - Express.js</title>
+    <title>모던 메모 앱</title>
     <style>
         body {
-            font-family: 'Arial', sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f4f6f8;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            min-height: 100vh;
         }
-        .container {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 30px;
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
+
         h1 {
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 2.5em;
+            color: #4a6fa5;
         }
-        .api-section {
-            margin: 20px 0;
+
+        .memo-container {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
             padding: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
+            width: 100%;
+            max-width: 500px;
         }
-        .api-button {
-            background: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: 10px 5px;
+
+        .input-group {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        .input-group input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px 0 0 8px;
+            outline: none;
             font-size: 16px;
         }
-        .api-button:hover {
-            background: #45a049;
+
+        .input-group button {
+            background: #4a6fa5;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 0 8px 8px 0;
+            cursor: pointer;
+            font-size: 16px;
         }
-        .result {
-            background: rgba(0, 0, 0, 0.2);
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 10px;
-            white-space: pre-wrap;
+
+        .input-group button:hover {
+            background: #3a5a84;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            background: #f9fafc;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .delete-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .delete-btn:hover {
+            background: #e85a5a;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🚀 Startup Code</h1>
-        <p>Express.js로 구축된 웹 애플리케이션입니다.</p>
-        
-        <div class="api-section">
-            <h3>API 테스트</h3>
-            <button class="api-button" onclick="testMainAPI()">메인 API 테스트</button>
-            <button class="api-button" onclick="testStatusAPI()">상태 API 테스트</button>
-            <div id="result" class="result"></div>
+    <h1>📒 모던 메모 앱</h1>
+    <div class="memo-container">
+        <div class="input-group">
+            <input type="text" id="memoInput" placeholder="메모를 입력하세요...">
+            <button onclick="addMemo()">추가</button>
         </div>
+        <ul id="memoList"></ul>
     </div>
 
     <script>
-        async function testMainAPI() {
-            try {
-                const response = await fetch('/');
-                const data = await response.json();
-                document.getElementById('result').textContent = JSON.stringify(data, null, 2);
-            } catch (error) {
-                document.getElementById('result').textContent = 'Error: ' + error.message;
-            }
+        const memoInput = document.getElementById('memoInput');
+        const memoList = document.getElementById('memoList');
+
+        // 로컬 스토리지에서 메모 불러오기
+        document.addEventListener('DOMContentLoaded', loadMemos);
+
+        function loadMemos() {
+            const memos = JSON.parse(localStorage.getItem('memos')) || [];
+            memos.forEach(memo => renderMemo(memo));
         }
 
-        async function testStatusAPI() {
-            try {
-                const response = await fetch('/api/status');
-                const data = await response.json();
-                document.getElementById('result').textContent = JSON.stringify(data, null, 2);
-            } catch (error) {
-                document.getElementById('result').textContent = 'Error: ' + error.message;
-            }
+        function addMemo() {
+            const memoText = memoInput.value.trim();
+            if (memoText === '') return;
+
+            renderMemo(memoText);
+            saveMemo(memoText);
+
+            memoInput.value = '';
+        }
+
+        function renderMemo(text) {
+            const li = document.createElement('li');
+            li.textContent = text;
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.textContent = '삭제';
+            deleteBtn.className = 'delete-btn';
+            deleteBtn.onclick = function() {
+                li.remove();
+                deleteMemo(text);
+            };
+
+            li.appendChild(deleteBtn);
+            memoList.appendChild(li);
+        }
+
+        function saveMemo(text) {
+            const memos = JSON.parse(localStorage.getItem('memos')) || [];
+            memos.push(text);
+            localStorage.setItem('memos', JSON.stringify(memos));
+        }
+
+        function deleteMemo(text) {
+            let memos = JSON.parse(localStorage.getItem('memos')) || [];
+            memos = memos.filter(memo => memo !== text);
+            localStorage.setItem('memos', JSON.stringify(memos));
         }
     </script>
 </body>
