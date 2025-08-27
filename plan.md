@@ -34,6 +34,13 @@ CTRL +C : 서버 중단
 
 작성(에디터) - 실행(터미널) - 확인(브라우저)
 
+* 커서를 열고
+ * 버셀에 배포해주세요.
+ * 다른 사용자가 프로덕션 URL을 접속하면 권한이 없다고 나오는데요. 그냥 접속할 수 있게 해줄 수 있나요?
+ * Express.js를 쓰고 싶습니다.
+ * index.html을 브라우저에서 접속하려면 어떻게 해야하나요?
+ * 버셀 배포해주세요.
+
 CLI: Command Line Interface
 
 ### 메모장 앱 진화
@@ -42,8 +49,10 @@ CLI: Command Line Interface
 
 ### 토픽
 * package.json
+#### DB
 * Database
-* SQL 기초
+* SQL 기초: TEXT2SQL
+#### 프론트 백 연결(네트웍)
 * Event
 * Fetch
 * JSON

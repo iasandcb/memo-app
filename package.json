@@ -1,20 +1,22 @@
 {
   "name": "startupcode",
   "version": "1.0.0",
-  "description": "Startup coding project with Express.js",
+  "description": "Startup coding project with Express.js and Supabase",
   "main": "index.js",
+  "type": "commonjs",
   "scripts": {
     "start": "node index.js",
     "dev": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["nodejs", "express", "server", "api"],
+  "keywords": ["nodejs", "express", "server", "api", "supabase"],
   "author": "Alex",
   "license": "MIT",
   "engines": {
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "@supabase/supabase-js": "^2.39.0"
   }
 }

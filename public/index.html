@@ -3,149 +3,296 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>모던 메모 앱</title>
+    <title>Startup Code - 메모앱 (Supabase 연동)</title>
     <style>
         body {
-            font-family: 'Segoe UI', sans-serif;
-            background-color: #f4f6f8;
-            color: #333;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            font-family: 'Arial', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
             padding: 20px;
-        }
-
-        h1 {
-            color: #4a6fa5;
-        }
-
-        .memo-container {
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            padding: 20px;
-            width: 100%;
-            max-width: 500px;
-        }
-
-        .input-group {
-            display: flex;
-            margin-bottom: 20px;
-        }
-
-        .input-group input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 8px 0 0 8px;
-            outline: none;
-            font-size: 16px;
-        }
-
-        .input-group button {
-            background: #4a6fa5;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
+            min-height: 100vh;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .memo-form {
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        .memo-input {
+            width: 100%;
+            padding: 15px;
             border: none;
-            padding: 10px 15px;
-            border-radius: 0 8px 8px 0;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+        }
+        .memo-button {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 16px;
+            margin-right: 10px;
         }
-
-        .input-group button:hover {
-            background: #3a5a84;
+        .memo-button:hover {
+            background: #45a049;
         }
-
-        ul {
-            list-style: none;
-            padding: 0;
+        .memo-button.delete {
+            background: #f44336;
         }
-
-        li {
-            background: #f9fafc;
-            margin-bottom: 10px;
-            padding: 10px;
+        .memo-button.delete:hover {
+            background: #da190b;
+        }
+        .memo-list {
+            margin-top: 20px;
+        }
+        .memo-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            margin: 10px 0;
             border-radius: 8px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
-
-        .delete-btn {
-            background: #ff6b6b;
+        .memo-content {
+            flex: 1;
+            margin-right: 15px;
+        }
+        .memo-date {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+        .api-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        .api-button {
+            background: #2196F3;
             color: white;
+            padding: 10px 20px;
             border: none;
-            padding: 5px 10px;
-            border-radius: 6px;
+            border-radius: 5px;
             cursor: pointer;
+            margin: 10px 5px;
+            font-size: 16px;
+        }
+        .api-button:hover {
+            background: #1976D2;
+        }
+        .result {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            white-space: pre-wrap;
             font-size: 14px;
         }
-
-        .delete-btn:hover {
-            background: #e85a5a;
+        .status {
+            text-align: center;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .status.success {
+            background: rgba(76, 175, 80, 0.3);
+        }
+        .status.error {
+            background: rgba(244, 67, 54, 0.3);
         }
     </style>
 </head>
 <body>
-    <h1>📒 모던 메모 앱</h1>
-    <div class="memo-container">
-        <div class="input-group">
-            <input type="text" id="memoInput" placeholder="메모를 입력하세요...">
-            <button onclick="addMemo()">추가</button>
+    <div class="container">
+        <h1>📝 메모앱</h1>
+        <p>Supabase와 연동된 실시간 메모 저장/삭제 애플리케이션입니다.</p>
+        
+        <div class="memo-form">
+            <h3>새 메모 작성</h3>
+            <textarea 
+                id="memoInput" 
+                class="memo-input" 
+                placeholder="메모를 입력하세요..." 
+                rows="4"
+            ></textarea>
+            <button class="memo-button" onclick="addMemo()">메모 저장</button>
+            <button class="memo-button" onclick="loadMemos()">메모 새로고침</button>
         </div>
-        <ul id="memoList"></ul>
+
+        <div id="status" class="status" style="display: none;"></div>
+
+        <div class="memo-list">
+            <h3>저장된 메모</h3>
+            <div id="memoList">
+                <p>메모를 로드하려면 "메모 새로고침" 버튼을 클릭하세요.</p>
+            </div>
+        </div>
+
+        <div class="api-section">
+            <h3>API 테스트</h3>
+            <button class="api-button" onclick="testMainAPI()">메인 API 테스트</button>
+            <button class="api-button" onclick="testStatusAPI()">상태 API 테스트</button>
+            <button class="api-button" onclick="testMemosAPI()">메모 API 테스트</button>
+            <div id="result" class="result"></div>
+        </div>
     </div>
 
     <script>
-        const memoInput = document.getElementById('memoInput');
-        const memoList = document.getElementById('memoList');
-
-        // 로컬 스토리지에서 메모 불러오기
-        document.addEventListener('DOMContentLoaded', loadMemos);
-
-        function loadMemos() {
-            const memos = JSON.parse(localStorage.getItem('memos')) || [];
-            memos.forEach(memo => renderMemo(memo));
+        // 상태 메시지 표시 함수
+        function showStatus(message, type = 'success') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+            statusDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 3000);
         }
 
-        function addMemo() {
-            const memoText = memoInput.value.trim();
-            if (memoText === '') return;
+        // 메모 추가 함수
+        async function addMemo() {
+            const input = document.getElementById('memoInput');
+            const content = input.value.trim();
+            
+            if (!content) {
+                showStatus('메모 내용을 입력해주세요.', 'error');
+                return;
+            }
 
-            renderMemo(memoText);
-            saveMemo(memoText);
+            try {
+                const response = await fetch('/api/memos', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ content })
+                });
 
-            memoInput.value = '';
+                const result = await response.json();
+                
+                if (result.success) {
+                    showStatus('메모가 성공적으로 저장되었습니다!');
+                    input.value = '';
+                    loadMemos(); // 메모 목록 새로고침
+                } else {
+                    showStatus('메모 저장에 실패했습니다.', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus('메모 저장 중 오류가 발생했습니다.', 'error');
+            }
         }
 
-        function renderMemo(text) {
-            const li = document.createElement('li');
-            li.textContent = text;
-
-            const deleteBtn = document.createElement('button');
-            deleteBtn.textContent = '삭제';
-            deleteBtn.className = 'delete-btn';
-            deleteBtn.onclick = function() {
-                li.remove();
-                deleteMemo(text);
-            };
-
-            li.appendChild(deleteBtn);
-            memoList.appendChild(li);
+        // 메모 목록 로드 함수
+        async function loadMemos() {
+            try {
+                const response = await fetch('/api/memos');
+                const result = await response.json();
+                
+                const memoList = document.getElementById('memoList');
+                
+                if (result.memos && result.memos.length > 0) {
+                    memoList.innerHTML = result.memos.map(memo => `
+                        <div class="memo-item">
+                            <div class="memo-content">
+                                <div>${memo.content}</div>
+                                <div class="memo-date">${new Date(memo.created_at).toLocaleString('ko-KR')}</div>
+                            </div>
+                            <button class="memo-button delete" onclick="deleteMemo(${memo.id})">삭제</button>
+                        </div>
+                    `).join('');
+                } else {
+                    memoList.innerHTML = '<p>저장된 메모가 없습니다.</p>';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus('메모 로드 중 오류가 발생했습니다.', 'error');
+            }
         }
 
-        function saveMemo(text) {
-            const memos = JSON.parse(localStorage.getItem('memos')) || [];
-            memos.push(text);
-            localStorage.setItem('memos', JSON.stringify(memos));
+        // 메모 삭제 함수
+        async function deleteMemo(id) {
+            if (!confirm('정말로 이 메모를 삭제하시겠습니까?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/memos/${id}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showStatus('메모가 성공적으로 삭제되었습니다!');
+                    loadMemos(); // 메모 목록 새로고침
+                } else {
+                    showStatus('메모 삭제에 실패했습니다.', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus('메모 삭제 중 오류가 발생했습니다.', 'error');
+            }
         }
 
-        function deleteMemo(text) {
-            let memos = JSON.parse(localStorage.getItem('memos')) || [];
-            memos = memos.filter(memo => memo !== text);
-            localStorage.setItem('memos', JSON.stringify(memos));
+        // API 테스트 함수들
+        async function testMainAPI() {
+            try {
+                const response = await fetch('/');
+                const data = await response.json();
+                document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('result').textContent = 'Error: ' + error.message;
+            }
         }
+
+        async function testStatusAPI() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+                document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('result').textContent = 'Error: ' + error.message;
+            }
+        }
+
+        async function testMemosAPI() {
+            try {
+                const response = await fetch('/api/memos');
+                const data = await response.json();
+                document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('result').textContent = 'Error: ' + error.message;
+            }
+        }
+
+        // 페이지 로드 시 메모 목록 로드
+        window.onload = function() {
+            loadMemos();
+        };
     </script>
 </body>
 </html>
