@@ -1,0 +1,16 @@
+{
+  "name": "startupcode",
+  "version": "1.0.0",
+  "description": "Startup coding project",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js"
+  },
+  "keywords": ["nodejs", "server"],
+  "author": "Alex",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
