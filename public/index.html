@@ -127,7 +127,18 @@
 <body>
     <div class="container">
         <h1>📝 메모앱</h1>
-        <p>Supabase와 연동된 실시간 메모 저장/삭제 애플리케이션입니다.</p>
+        <p>Supabase와 연동된 실시간 메모/댓글 + Auth 데모입니다.</p>
+
+        <div id="authBox" style="margin: 16px 0; padding:16px; background: rgba(255,255,255,0.1); border-radius:10px;">
+            <div id="authStatus" style="margin-bottom:10px; font-weight:bold;">로그인 상태 확인 중...</div>
+            <div id="authControls" style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+                <input id="emailInput" type="email" placeholder="이메일" style="padding:8px; border-radius:6px; border:none;" />
+                <input id="passwordInput" type="password" placeholder="비밀번호" style="padding:8px; border-radius:6px; border:none;" />
+                <button class="memo-button" style="background:#8BC34A" onclick="signUp()">가입</button>
+                <button class="memo-button" style="background:#03A9F4" onclick="signIn()">로그인</button>
+                <button class="memo-button delete" onclick="signOut()">로그아웃</button>
+            </div>
+        </div>
         
         <div class="memo-form">
             <h3>새 메모 작성</h3>
@@ -137,7 +148,7 @@
                 placeholder="메모를 입력하세요..." 
                 rows="4"
             ></textarea>
-            <button class="memo-button" onclick="addMemo()">메모 저장</button>
+            <button class="memo-button" id="addMemoBtn" onclick="addMemo()">메모 저장</button>
             <button class="memo-button" onclick="loadMemos()">메모 새로고침</button>
         </div>
 
@@ -160,6 +171,105 @@
     </div>
 
     <script>
+        // Supabase 클라이언트
+        let supabaseClient = null;
+        let currentSession = null;
+
+        async function initSupabase() {
+            try {
+                const cfg = await fetch('/api/public-config').then(r => r.json());
+                // 전역 supabaseClient 생성 (esm 없이 UMD 불가하므로 dynamic import 대체로 window.createClient 사용 불가)
+                // 브라우저에서 @supabase/supabase-js를 직접 번들하지 않았으므로, 간단히 REST Auth 엔드포인트를 사용할 수도 있지만
+                // 여기서는 js 라이브러리를 CDN으로 로드합니다.
+                await loadSupabaseCdn();
+                supabaseClient = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                currentSession = session;
+                updateAuthUI();
+
+                supabaseClient.auth.onAuthStateChange((_event, session_) => {
+                    currentSession = session_;
+                    updateAuthUI();
+                });
+            } catch (e) {
+                console.error('Supabase 초기화 실패:', e);
+                document.getElementById('authStatus').textContent = 'Supabase 초기화 실패';
+            }
+        }
+
+        function updateAuthUI() {
+            const statusEl = document.getElementById('authStatus');
+            const emailEl = document.getElementById('emailInput');
+            const pwEl = document.getElementById('passwordInput');
+            const addMemoBtn = document.getElementById('addMemoBtn');
+
+            const isLoggedIn = !!currentSession;
+            statusEl.textContent = isLoggedIn ? `로그인됨: ${currentSession.user.email}` : '로그아웃 상태';
+
+            // 비로그인 시 작성 기능 제한
+            addMemoBtn.disabled = !isLoggedIn;
+            emailEl.disabled = isLoggedIn;
+            pwEl.disabled = isLoggedIn;
+        }
+
+        async function signUp() {
+            const email = document.getElementById('emailInput').value.trim();
+            const password = document.getElementById('passwordInput').value;
+            if (!email || !password) {
+                showStatus('이메일/비밀번호를 입력하세요', 'error');
+                return;
+            }
+            const { error } = await supabaseClient.auth.signUp({ email, password });
+            if (error) {
+                showStatus(`가입 실패: ${error.message}`, 'error');
+            } else {
+                showStatus('가입 완료! 이메일 인증이 필요할 수 있습니다.');
+            }
+        }
+
+        async function signIn() {
+            const email = document.getElementById('emailInput').value.trim();
+            const password = document.getElementById('passwordInput').value;
+            if (!email || !password) {
+                showStatus('이메일/비밀번호를 입력하세요', 'error');
+                return;
+            }
+            const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            if (error) {
+                showStatus(`로그인 실패: ${error.message}`, 'error');
+            } else {
+                showStatus('로그인 성공!');
+            }
+        }
+
+        async function signOut() {
+            const { error } = await supabaseClient.auth.signOut();
+            if (error) {
+                showStatus(`로그아웃 실패: ${error.message}`, 'error');
+            } else {
+                showStatus('로그아웃 되었습니다.');
+            }
+        }
+
+        function requireAuth() {
+            if (!currentSession) {
+                showStatus('로그인이 필요합니다.', 'error');
+                return false;
+            }
+            return true;
+        }
+
+        async function loadSupabaseCdn() {
+            if (window.supabase) return;
+            await new Promise((resolve, reject) => {
+                const s = document.createElement('script');
+                s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+                s.onload = resolve;
+                s.onerror = reject;
+                document.head.appendChild(s);
+            });
+        }
         // 상태 메시지 표시 함수
         function showStatus(message, type = 'success') {
             const statusDiv = document.getElementById('status');
@@ -174,6 +284,7 @@
 
         // 메모 추가 함수
         async function addMemo() {
+            if (!requireAuth()) return;
             const input = document.getElementById('memoInput');
             const content = input.value.trim();
             
@@ -187,6 +298,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        ...(currentSession ? { 'Authorization': `Bearer ${currentSession.access_token}` } : {})
                     },
                     body: JSON.stringify({ content })
                 });
@@ -209,7 +321,11 @@
         // 메모 목록 로드 함수
         async function loadMemos() {
             try {
-                const response = await fetch('/api/memos');
+                const response = await fetch('/api/memos', {
+                    headers: {
+                        ...(currentSession ? { 'Authorization': `Bearer ${currentSession.access_token}` } : {})
+                    }
+                });
                 const result = await response.json();
                 
                 const memoList = document.getElementById('memoList');
@@ -219,11 +335,22 @@
                         <div class="memo-item">
                             <div class="memo-content">
                                 <div>${memo.content}</div>
-                                <div class="memo-date">${new Date(memo.created_at).toLocaleString('ko-KR')}</div>
+                                <div class="memo-date">${new Date(memo.created_at).toLocaleString('ko-KR')} · ${memo.author_email ? memo.author_email : '익명'}</div>
+                                <div id="comments-${memo.id}" style="margin-top:12px;">
+                                    <div style="font-weight:bold; margin-bottom:6px;">댓글</div>
+                                    <div id="commentList-${memo.id}" style="margin-bottom:8px; font-size:14px;">로딩 중...</div>
+                                    <div style="display:flex; gap:8px;">
+                                        <input id="commentInput-${memo.id}" placeholder="댓글을 입력하세요..." style="flex:1; padding:8px; border-radius:6px; border:none;" />
+                                        <button class="memo-button" style="background:#607D8B" onclick="addComment(${memo.id})">댓글 작성</button>
+                                    </div>
+                                </div>
                             </div>
                             <button class="memo-button delete" onclick="deleteMemo(${memo.id})">삭제</button>
                         </div>
                     `).join('');
+
+                    // 각 메모의 댓글 불러오기
+                    result.memos.forEach(memo => loadComments(memo.id));
                 } else {
                     memoList.innerHTML = '<p>저장된 메모가 없습니다.</p>';
                 }
@@ -233,15 +360,99 @@
             }
         }
 
+        // 특정 메모의 댓글 목록 로드
+        async function loadComments(memoId) {
+            try {
+                const response = await fetch(`/api/memos/${memoId}/comments`, {
+                    headers: {
+                        ...(currentSession ? { 'Authorization': `Bearer ${currentSession.access_token}` } : {})
+                    }
+                });
+                const result = await response.json();
+
+                const commentList = document.getElementById(`commentList-${memoId}`);
+                if (!commentList) return;
+
+                if (result.comments && result.comments.length > 0) {
+                    commentList.innerHTML = result.comments.map(c => `
+                        <div style="display:flex; align-items:center; justify-content:space-between; margin:6px 0;">
+                            <div>
+                                <div style="font-size:14px;">${c.content}</div>
+                                <div style="font-size:12px; opacity:0.75;">${new Date(c.created_at).toLocaleString('ko-KR')} · ${c.author_email ? c.author_email : '익명'}</div>
+                            </div>
+                            <button class="memo-button delete" style="padding:6px 10px; font-size:12px;" onclick="deleteComment(${c.id}, ${memoId})">삭제</button>
+                        </div>
+                    `).join('');
+                } else {
+                    commentList.innerHTML = '<div style="opacity:0.8;">아직 댓글이 없습니다.</div>';
+                }
+            } catch (error) {
+                console.error('Error loading comments:', error);
+                const commentList = document.getElementById(`commentList-${memoId}`);
+                if (commentList) commentList.innerHTML = '<div style="color:#ffebee;">댓글 로드 실패</div>';
+            }
+        }
+
+        // 댓글 작성
+        async function addComment(memoId) {
+            if (!requireAuth()) return;
+            const input = document.getElementById(`commentInput-${memoId}`);
+            const content = (input?.value || '').trim();
+            if (!content) {
+                showStatus('댓글 내용을 입력해주세요.', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/memos/${memoId}/comments`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', ...(currentSession ? { 'Authorization': `Bearer ${currentSession.access_token}` } : {}) },
+                    body: JSON.stringify({ content })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    input.value = '';
+                    loadComments(memoId);
+                    showStatus('댓글이 추가되었습니다.');
+                } else {
+                    showStatus('댓글 추가에 실패했습니다.', 'error');
+                }
+            } catch (error) {
+                console.error('Error adding comment:', error);
+                showStatus('댓글 추가 중 오류가 발생했습니다.', 'error');
+            }
+        }
+
+        // 댓글 삭제
+        async function deleteComment(commentId, memoId) {
+            if (!requireAuth()) return;
+            if (!confirm('이 댓글을 삭제하시겠습니까?')) return;
+            try {
+                const response = await fetch(`/api/comments/${commentId}`, { method: 'DELETE', headers: { ...(currentSession ? { 'Authorization': `Bearer ${currentSession.access_token}` } : {}) } });
+                const result = await response.json();
+                if (result.success) {
+                    loadComments(memoId);
+                    showStatus('댓글이 삭제되었습니다.');
+                } else {
+                    showStatus('댓글 삭제에 실패했습니다.', 'error');
+                }
+            } catch (error) {
+                console.error('Error deleting comment:', error);
+                showStatus('댓글 삭제 중 오류가 발생했습니다.', 'error');
+            }
+        }
+
         // 메모 삭제 함수
         async function deleteMemo(id) {
+            if (!requireAuth()) return;
             if (!confirm('정말로 이 메모를 삭제하시겠습니까?')) {
                 return;
             }
 
             try {
                 const response = await fetch(`/api/memos/${id}`, {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    headers: { ...(currentSession ? { 'Authorization': `Bearer ${currentSession.access_token}` } : {}) }
                 });
 
                 const result = await response.json();
@@ -291,7 +502,7 @@
 
         // 페이지 로드 시 메모 목록 로드
         window.onload = function() {
-            loadMemos();
+            initSupabase().then(() => loadMemos());
         };
     </script>
 </body>

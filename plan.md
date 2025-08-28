@@ -57,13 +57,41 @@ Frontend HTML <- Event -> JS <- Fetch -> Backend Node <-> DB Supabase
 * 공개 챗봇: 버셀
   * 기본: 버셀
   * 심화: 수파베이스
-    * 대화 이력: DB
-    * 사용자 관리: 인증 인가
+    * 사용자 관리: 구글 인증 -> 사용자 테이블 생성
+    * 대화 이력: 대화 이력 테이블을 만들 건데 사용자별로 하게 해주세요.
+    * RAG(Retrieval Augmented Generation): 문서 - 벡터 디비
 
 ## 2025-08-28
-* 오전: MCP 이론 + 실습 3개
-* 오후: 챗봇 준비
+
+지금 AI: 머리 + 귀 + 입 -> 눈 손 발 -> 피지컬(Physical) AI -> 휴머노이드
+
+Chat: 대화 말
+Agent: 대행 행동
+
+* 오전: MCP 이론 + 시연
+* 오후: 1 on 1 (10분): 진도, 챗봇 목표
+  * 활용 사례 실습
+  * 프로젝트 실습
+  * 챗봇 개발 시작(화면)
+
+### MCP 정리
+
+* 커서에 수파베이스 MCP 추가
+  * https://supabase.com/docs/guides/getting-started/mcp?queryGroups=os&os=windows#cursor
+  * "--read-only", 를 지워야 디비 조작이 가능하다.
+
+* 사용한 프롬프트
+  * Supabase를 활용해서 메모에 댓글 작성 기능을 추가해주세요.
+  * Supabase Auth를 써서 가입과 로그인 기능을 추가해주세요.
+  * 참 잘했어요. 그런데, 메모와 댓글에 유저 정보가 없어요. 추가해주세요.
 
 ## 2025-08-29
-* 오전: 앨런 따라하기 (바이브 코딩)
-* 오후: 자기만의 챗봇 만들어 발표하기
+* 오전
+  * 앨런
+  * Ollama - ChatGPT
+  * GPT
+* 오후
+  * 챗봇 chatbot 만들기: 바이브코딩(폴더, 버셀, SB 생성)
+    1. Gemini API를 써서 챗봇을 만들고 싶어.
+    2. Supabase Vector Store를 써서 RAG 기능을 추가하자.
+  * 15:00 발표
