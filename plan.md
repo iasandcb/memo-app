@@ -87,11 +87,22 @@ Agent: 대행 행동
 
 ## 2025-08-29
 * 오전
-  * 앨런
-  * Ollama - ChatGPT
-  * GPT
+  1. Ollama - ChatGPT: 자체 서빙, 외부 자료 연동 - 밀키트
+  2. GPT - GPT 스토어에 공개 가능: 프롬프트 엔지니어링 - 외식
+  3. 앨런: 저는 요리하고(날코딩) 여러분은 배달(바이브 코딩)
+    * 압축 푼 후
+    * be/server.js의 CLIENT_ID를 본인 것으로 한다.
+    * 터미널에서
+      * cd be
+      * npm install
+      * npm start
+    * http://localhost:3000 를 브라우저에서 연다.
+
 * 오후
-  * 챗봇 chatbot 만들기: 바이브코딩(폴더, 버셀, SB 생성)
+  * 챗봇 chatbot 만들기: 바이브코딩
     1. Gemini API를 써서 챗봇을 만들고 싶어.
     2. Supabase Vector Store를 써서 RAG 기능을 추가하자.
-  * 15:00 발표
+
+  XX 웹앱을 만드려 합니다. 프론트엔드는 HTML CSS JS로, 백엔드는 Express.js로 하고 싶어요.
+      
+  챗봇 AI 모델은 구글 제미나이 모델 2.5-flash를 쓰려고 합니다.
